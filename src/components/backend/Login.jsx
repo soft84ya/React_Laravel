@@ -1,12 +1,14 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import Header from '../common/Header'
 import Footer from '../common/Footer'
 import { useForm } from "react-hook-form"
 import { toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from './context/Auth';
 
 const Login = () => {
+    const {login} = useContext(AuthContext)
     const navigate = useNavigate();
     const {
         register,
@@ -15,31 +17,60 @@ const Login = () => {
         formState: { errors },
     } = useForm()
 
+    // const onSubmit = async (data) => {
+    //     // console.log(data)
+    //     const res = await fetch("http://127.0.0.1:8000/api/authenticate", {
+    //         method: 'POST',
+    //         headers: {
+    //             'Content-type': 'application/json'
+    //         },
+    //         body: JSON.stringify(data)
+    //     });
+    //     const result = await res.json();
+    //     if (result.status === false) {
+    //         toast.error(result.message)
+    //     } else {
+
+    //         const userInfo = {
+    //             id: result.id,
+    //             token: result.token
+    //         }
+
+    //         localStorage.setItem('userInfo', JSON.stringify(userInfo))
+
+    //         navigate('/admin/dashboard');
+    //     }
+    //     //console.log(result);
+    // }
+
     const onSubmit = async (data) => {
-       // console.log(data)
-       const res = await fetch("http://127.0.0.1:8000/api/authenticate",{
-        method:'POST',
-        headers:{
-            'Content-type' : 'application/json'
-        },
-        body:JSON.stringify(data)
-       });
-       const result = await res.json();
-       if (result.status === false){
-        toast.error(result.message)
-       }else{
-
-        const userInfo = {
-            id: result.id,
-            token:result.token
+        const res = await fetch("http://127.0.0.1:8000/api/authenticate", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+    
+        const result = await res.json();
+        
+        if (!result.status) {
+            toast.error(result.message);
+        } else {
+            const userInfo = {
+                id: result.id,
+                token: result.token,
+                email: result.email,  // Add email if required
+            };
+    
+            localStorage.setItem('userInfo', JSON.stringify(userInfo));
+            login(userInfo);
+            // Redirect to dashboard
+            navigate('/admin/dashboard');
+            window.location.reload(); // Ensure context updates
         }
-
-        localStorage.setItem('userInfo',JSON.stringify(userInfo))
-
-                navigate('/admin/dashboard');
-       }
-       //console.log(result);
-    }
+    };
+    
     return (
         <>
             <Header />
@@ -48,7 +79,7 @@ const Login = () => {
                     <div className="login-form my-5">
                         <div className="card border-0 shadow">
                             <div className="card-body p-4">
-                            <form onSubmit={handleSubmit(onSubmit)}>
+                                <form onSubmit={handleSubmit(onSubmit)}>
                                     <h3 className='mb-3'>Login From</h3>
                                     <div className="mb-3">
                                         <label htmlFor="" className='form-label'>Email</label>
